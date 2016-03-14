@@ -12,6 +12,9 @@
 \usepackage{mdframed}
 \usepackage{tcolorbox}
 \usepackage{float}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
 
 \usepackage{mathtools}
 \DeclarePairedDelimiterX{\norm}[1]{\lVert}{\rVert}{#1}
@@ -41,10 +44,12 @@
 \newcommand{\sumK}{\sum\limits_{k=0}^{N-1}}
 \newcommand\given[1][]{\:#1\vert\:}
 
+\graphicspath{{img/}}
+
 \title{CS 543 - Final Project Proposal}
 \author{
         Dario Aranguiz \\
-        Khoi-Nguyen Mac
+        Cu-Khoi-Nguyen Mac
         }
 \date{\today}
 
@@ -65,7 +70,7 @@ also working under Minh Do.
 
 For our final project, we plan on implementing and exploring extensions of the
 2015 paper \textit{Multimodal Deep Learning for Robust RGB-D Object
-Recognition} (TODO: citation) by Eitel et al. Our research group has recently
+Recognition} \cite{Eitel2015} by Eitel et al. Our research group has recently
 taken interest in the capabilities of depth cameras, and as such we have
 various time of flight and structured-light depth sensors. Our group members
 have done quite a bit of work in facial recognition and related areas using
@@ -142,11 +147,43 @@ network and training.
 
 \section{Resources}
 
-For our data, we will (TODO: include images) be utilizing the Washington RGB-D
+For our data, we will be utilizing the Washington RGB-D
 Object Dataset. Researchers at the University of Washington have compiled a
 dataset of 300 common household objects, scanned on a turntable at 640x480
 resolution. These images are all segmented, although the image sizes have yet to
-be normalized.
+be normalized. Figure \ref{fig:washington_samples} illustrates two samples of the dataset, being an apple and a banana. Each sample comes with an RGB image, a depth map, and a mask to segment the object.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.32\linewidth}
+		\includegraphics[width=\textwidth]{apple_1_1_100}
+		\caption{Apple - color}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\linewidth}
+		\includegraphics[width=\textwidth]{apple_1_1_100_depth_n}
+		\caption{Apple - depth}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\linewidth}
+		\includegraphics[width=\textwidth]{apple_1_1_100_mask}
+		\caption{Apple - mask}
+	\end{subfigure}
+	\\
+	\begin{subfigure}[b]{0.32\linewidth}
+		\includegraphics[width=\textwidth]{banana_1_1_100}
+		\caption{Banana - color}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\linewidth}
+		\includegraphics[width=\textwidth]{banana_1_1_100_depth_n}
+		\caption{Banana - depth}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\linewidth}
+		\includegraphics[width=\textwidth]{banana_1_1_100_mask}
+		\caption{Banana - mask}
+	\end{subfigure}
+	
+	\caption{Two samples of Washington dataset}
+	\label{fig:washington_samples}
+\end{figure}
 
 For our software platform, we intend on using Keras, a Python wrapper for neural
 networks. Keras was originally designed to use Theano as a backend, but it is
@@ -173,6 +210,10 @@ As mentioned earlier, we are both first-year graduate students under Professor
 Minh Do. Between the two of us, we have extensive software engineering experience, but neither of us have done any work with deep learning or object recognition in the past. In particular, Dario has used Keras for a toy project in the past, but only used it for a simple fully-connected neural network.
 
 This project will be the first step in Mac's PhD thesis, but it has no relation to Dario's research. 
+
+
+\bibliographystyle{abbrv}
+\bibliography{mybib}
 
 
 %%% End document
