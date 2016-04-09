@@ -66,6 +66,7 @@
 \section{Proposed approach}
 
 \section{Data}
+Following the proposed approach by Eitel et al. \cite{Eitel2015}, we decide to use Washington's RGB-D object dataset \cite{Lai2011} for training and testing. The dataset contains 300 household objects (instances) divided into 51 categories. Each instance has three different takes, each records a full turn-around rotation of the object. A sample of the full database includes images of color, depth, mask (as seen in Figure \ref{fig:banana}), and a text file recording the top-left corner of the object.
 
 \begin{figure}[htbp]
 	\centering
@@ -82,15 +83,17 @@
 		\caption{Mask}
 	\end{subfigure}
 	
-	\caption{A banana sample of Washington's RGB-D object dataset.}
+	\caption{A banana sample of Washington's RGB-D object dataset. The depth image is rescaled to the range [0, 255] to visual the information.}
 	\label{fig:banana}
 \end{figure}
 
-sub-dataset
+To speed up the process of testing our system's runnability, we pick out 15 instances from 5 different categories (3 each), namely \texttt{apple}, \texttt{ball}, \texttt{banana}, \texttt{bell\_pepper}, and \texttt{binder}. After the system is fully functional, we will expand the training list to the whole dataset.
+
 
 \section{Initial results}
-
 \subsection{Data preprocessing}
+We use the provided masks and top-left corners to remove unnecessary information from color and depth images (Figure \ref{fig:banana_crop}). Top bottom-right corner if dynamically found, depending on each sample. According to Eitel et al. \cite{Eitel2015}, they convert the depth images into color ones using colorjet mapping as they want to have the same training mechanism for both color and depth. We inherit this idea and apply the same depth colorizing technique. The images are then rescaled to 227x227 (Figure \ref{fig:banana_resize}) by replicating the longer side from the cropped images. This help to maintain the object in the center without deformation after rescaling.
+
 \begin{figure}[htbp]
 	\centering
 	\begin{subfigure}[b]{0.32\linewidth}
@@ -120,12 +123,17 @@ sub-dataset
 \end{figure}
 
 \subsection{Model architecture}
+Figure \ref{fig:architecture_eitel} illustrates the network architecture proposed by Eitel et al. \cite{Eitel2015}. There are two separate stream models, corresponding to color and depth channels. Each stream contains 5 convolution (from \texttt{conv-1} to \texttt{conv-5}) and 2 fully connected layers (\texttt{fc6} and \texttt{fc7}). The streams are fused together by one fusion layer (\texttt{fc-fus}) and classified by \texttt{class} layer.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=.7\textwidth]{architecture}
 	\caption{Model architecture proposed by Eitel et al. \cite{Eitel2015}.}
 	\label{fig:architecture_eitel}
 \end{figure}
+
+Figure \ref{fig:fusion_model} shows our model, constructed by following the description in Figure \ref{fig:architecture_eitel}. The model is plotted using visualizer package of Keras. Using Keras, each stream is constructed using \texttt{Sequential()} model and the fusion layer is created by \texttt{Merge()} layer. We propose to augment each convolutional layer (\texttt{Convolution2D()}) with a maxpooling (\texttt{MaxPolling2D()}) and a dense sampling layer (\texttt{Dense()}) to reduce the risk of over-fitting and decrease memory usage.
+
+In fact, there are two different training process: one to find the weights of stream model and one for the fusion model. To train a stream model, we create an architecture similar to a branch in Figure \ref{fig:fusion_model} and add one classifier at the end (Figure \ref{fig:stream_model}). The weights of trained streams are reused to initialize the two branches of the whole network.
 
 \begin{figure}[htbp]
 \centering
@@ -134,10 +142,20 @@ sub-dataset
 \label{fig:fusion_model}
 \end{figure}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=.24\textwidth]{stream_model}
+	\caption{Single stream model.}
+	\label{fig:stream_model}
+\end{figure}
+
+\subsection{Other accomplishments}
+Beside data preprocessing and model construction, we have also successfully configured a GPU environment for Keras/Theano to speed up training process. In addition, the paper mentions about using CaffeNet to initialize the network. However, this pretrained network has to be converted to Keras format before loading. We utilize a modified version of Keras that includes conversion package, provided by Bolanos \cite{Bolanos2016}.
+
 \section{Current reservations and questions}
 (if any)
 
-\bibliographystyle{abbrv}
+\bibliographystyle{ieeetr}
 \bibliography{mybib}
 
 
