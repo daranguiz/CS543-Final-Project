@@ -61,12 +61,106 @@
 
 \section{Updated statement of the project definition and goals}
 
+\textit{We have no particular changes to our project scope. Our project
+proposal is copied below for posterity.}
+
+For our final project, we plan on implementing and exploring extensions of the
+2015 paper \textit{Multimodal Deep Learning for Robust RGB-D Object
+Recognition} \cite{Eitel2015} by Eitel et al. Our research group has recently
+taken interest in the capabilities of depth cameras, and as such we have
+various time of flight and structured-light depth sensors. Our group members
+have done quite a bit of work in facial recognition and related areas using
+depth, but an area we have yet to explore is augmenting traditional RGB-based
+object recognition approaches with depth information. To this end, we have
+chosen a recent paper from IROS 2015 that approaches the age-old problem of
+object recognition with two new modalities, depth and deep learning.
+
+The motivation for this technique is as follows. Convolutional Neural Networks
+(CNNs) have proven remarkably useful for object recognition in the last few
+years, with large companies such as Microsoft and Google pouring resources
+into training more efficient networks. We are also interested in this problem,
+but unlike Microsoft and Google, we do not have a GPU farm at our disposal to
+train networks ad-infinitum. This prompts an interesting question; how can we
+utilize pre-trained ImageNet networks while incorporating depth information?
+CNNs require a fixed-size input, and most pre-trained networks have only been
+trained on three-channel information. That constraint is the primary
+motivation behind Eitel et al's technique.
+
+To get around this problem, two separate three-channel networks are used: one
+to process the incoming RGB images, and another to process the incoming depth
+information. This depth information is transformed from single-channel
+distance information to a three-channel RGB image using a depth-to-color
+heatmap, the intuition being that useful features such as edges and corners
+are preserved in this transformation. The final fully-connected layers of each
+of these networks are then removed, and the second-to-last activation layers
+are fed into a single large classification layer, merging the two networks.
+Additional preprocessing is also done, but the system functions loosely as
+described.
+
+Our expected final outcome is to have a fully-functioning system that can
+distinguish between objects from the Washington RGB-D Object Dataset. At
+minimum, we aim to replicate the paper and get a recognition system of our own
+running locally. We have a few stretch goals, listed in order of expected
+difficulty:
+
+\begin{enumerate}
+
+    \item \textbf{Different Backends} - The current most-frequently used
+    network backend is a package called Theano. However, Google recently
+    released their own open-source Machine Learning backend called
+    TensorFlow. It would be interesting to compare the efficacy of these two
+    systems with our project.
+
+    \item \textbf{Different Classification Layers} - In the paper, the authors
+    recommend using a single fully-connected layer at the end of the pipeline
+    for classification. It would be interesting to see how this scheme
+    compares with other classification methods such as logistic regression,
+    SVM, Random Forests, and others.
+
+    \item \textbf{Different Preprocessing Schemes} - The authors prescribe a
+    number of preprocessing techniques to convert depth images from one-channel
+    data to three-channel data, but other preprocessing techniques have been
+    used in the past to do this as well.
+
+    \item \textbf{Network Modifications} - This is by and large our most
+    ambitious stretch goal. The two-network system is core to the authors'
+    architecture, but we would be interesting in exploring different ways of
+    fusing depth data with traditional RGB data. This comes with a number of
+    challenges, the least being that any modification to a pretrained ImageNet
+    network would eliminate the benefit of using a pretrained network at all.
+
+\end{enumerate}
+
+
 \section{Current member roles and collaboration strategies}
+
+As mentioned in the proposal, this project is not easily split into modules.
+Dario has been helping with the actual Keras implementation of the stream
+network, and Mac has been completing the preprocessing stages as well as the
+actual Keras implementation. Code is shared in a GitHub repository, whereas
+copies of the dataset are only stored locally. As for communication, we maintain
+an open communication channel using Slack as well as simply sitting near each
+other in our group's office. To that end, we do not have regular meetings, but
+rather ad-hoc meetings whenever one of us gets stuck.
+
 
 \section{Proposed approach}
 
+Proposed approach in the form of a detailed outline, pseudocode, or prose description. Be specific about how you plan to implement each step with references, pointers to external code, etc. One or more references are required at this stage.
+
+TODO
+
+
+
 \section{Data}
-Following the proposed approach by Eitel et al. \cite{Eitel2015}, we decide to use Washington's RGB-D object dataset \cite{Lai2011} for training and testing. The dataset contains 300 household objects (instances) divided into 51 categories. Each instance has three different takes, each records a full turn-around rotation of the object. A sample of the full database includes images of color, depth, mask (as seen in Figure \ref{fig:banana}), and a text file recording the top-left corner of the object.
+
+Following the proposed approach by Eitel et al. \cite{Eitel2015}, we decide to
+use Washington's RGB-D object dataset \cite{Lai2011} for training and testing.
+The dataset contains 300 household objects (instances) divided into 51
+categories. Each instance has three different takes, each records a full turn-
+around rotation of the object. A sample of the full database includes images of
+color, depth, mask (as seen in Figure \ref{fig:banana}), and a text file
+recording the top-left corner of the object.
 
 \begin{figure}[htbp]
 	\centering
@@ -82,7 +176,7 @@ Following the proposed approach by Eitel et al. \cite{Eitel2015}, we decide to u
 		\includegraphics[width=\textwidth]{banana_1_1_1_mask}
 		\caption{Mask}
 	\end{subfigure}
-	
+
 	\caption{A banana sample of Washington's RGB-D object dataset. The depth image is rescaled to the range [0, 255] to visual the information.}
 	\label{fig:banana}
 \end{figure}
