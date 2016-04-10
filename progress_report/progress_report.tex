@@ -146,11 +146,30 @@ rather ad-hoc meetings whenever one of us gets stuck.
 
 \section{Proposed approach}
 
-Proposed approach in the form of a detailed outline, pseudocode, or prose description. Be specific about how you plan to implement each step with references, pointers to external code, etc. One or more references are required at this stage.
+As mentioned during the initial project proposal, we intend to implement the approach detailed by \cite{Eitel2015}. A loose description our pipeline is as follows:
 
-TODO
+\begin{enumerate}
 
+	\item
+	First, preprocess the images. This involves converting the single-channel depth images into three-channel RGB images so they can be processed by preexisting trained networks such as AlexNet or VGG. Before colorization, these images are segmented using a human-drawn mask provided in the Washington dataset and padded into a $227 \times 227$ square. More details and sample output from our system in Section \ref{sec:data_preprocessing}.
 
+	\item
+	Next, train the network. This is done in multiple stages:
+
+	\begin{enumerate}
+
+		\item
+		First, we consider two separate networks with the same model architecture; one corresponding to the color image and one corresponding to the colorized depth image. These networks are initialized with AlexNet pretrained model weights and trained individually using a standard stochastic gradient descent method provided by Keras. An example of this training method can be found on the Keras Examples page \cite{KerasExample}. AMore details on the model architecture in Section \ref{sec:model_architecture}.
+
+		\item
+		Next, we strip the final \texttt{softmax} classification layer from each of the two networks, leaving a 4096-dimension fully-connected layer at the end of each network. These are then fused together as in Figure \ref{fig:fusion_model} and trained as a single network using initial weights from the prior step. Keras provides a simple API to concatenate multiple models.
+
+	\end{enumerate}
+
+	\item
+	Finally, testing is performed using Keras's \texttt{model.test()} API.
+
+\end{enumerate}
 
 \section{Data}
 
@@ -185,8 +204,8 @@ To speed up the process of testing our system's runnability, we pick out 15 inst
 
 
 \section{Initial results}
-\subsection{Data preprocessing}
-We use the provided masks and top-left corners to remove unnecessary information from color and depth images (Figure \ref{fig:banana_crop}). Top bottom-right corner if dynamically found, depending on each sample. According to Eitel et al. \cite{Eitel2015}, they convert the depth images into color ones using colorjet mapping as they want to have the same training mechanism for both color and depth. We inherit this idea and apply the same depth colorizing technique. The images are then rescaled to 227x227 (Figure \ref{fig:banana_resize}) by replicating the longer side from the cropped images. This help to maintain the object in the center without deformation after rescaling.
+\subsection{Data preprocessing} \label{sec:data_preprocessing}
+We use the provided masks and top-left corners to remove unnecessary information from color and depth images (Figure \ref{fig:banana_crop}). Top bottom-right corner if dynamically found, depending on each sample. According to Eitel et al. \cite{Eitel2015}, they convert the depth images into color ones using colorjet mapping as they want to have the same training mechanism for both color and depth. We inherit this idea and apply the same depth colorizing technique. The images are then rescaled to $227 \times 227$ (Figure \ref{fig:banana_resize}) by replicating the longer side from the cropped images. This help to maintain the object in the center without deformation after rescaling.
 
 \begin{figure}[htbp]
 	\centering
@@ -216,7 +235,7 @@ We use the provided masks and top-left corners to remove unnecessary information
 	\label{fig:banana_resize}
 \end{figure}
 
-\subsection{Model architecture}
+\subsection{Model architecture} \label{sec:model_architecture}
 Figure \ref{fig:architecture_eitel} illustrates the network architecture proposed by Eitel et al. \cite{Eitel2015}. There are two separate stream models, corresponding to color and depth channels. Each stream contains 5 convolution (from \texttt{conv-1} to \texttt{conv-5}) and 2 fully connected layers (\texttt{fc6} and \texttt{fc7}). The streams are fused together by one fusion layer (\texttt{fc-fus}) and classified by \texttt{class} layer.
 \begin{figure}[htbp]
 	\centering
@@ -247,7 +266,8 @@ In fact, there are two different training process: one to find the weights of st
 Beside data preprocessing and model construction, we have also successfully configured a GPU environment for Keras/Theano to speed up training process. In addition, the paper mentions about using CaffeNet to initialize the network. However, this pretrained network has to be converted to Keras format before loading. We utilize a modified version of Keras that includes conversion package, provided by Bolanos \cite{Bolanos2016}.
 
 \section{Current reservations and questions}
-(if any)
+
+Model implementation is taking longer than expected with respect to getting our code to run on the GPU, but otherwise, we are on track.
 
 \bibliographystyle{ieeetr}
 \bibliography{mybib}
