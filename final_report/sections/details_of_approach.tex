@@ -36,19 +36,49 @@ residual learning network, making it a better choice for our limited compute
 capacity and timeframe. Our implementation of AlexNet is shown in further
 detail in Figure \ref{fig:single_stream_layout}. 
 
-Finally, we strip the \texttt{fc8} classification layers from the our AlexNet streams and concatenate the two models, feeding the now 8092-node layer into \texttt{fc1-fus}, a 4096-node fully-connected layer. Lastly, this goes into a final classification layer with softmax activation.
+Finally, we strip the \texttt{fc8} classification layers from the our AlexNet
+streams and concatenate the two models, feeding the now 8092-node layer into
+\texttt{fc1-fus}, a 4096-node fully-connected layer. This then goes into a final classification layer with softmax activation. The individual elements of the network are described below.
 
 \subsubsection{Convolutional Layer}
+TODO, what is a convolutional layer
 
 \subsubsection{ReLU}
+TODO, what is ReLU
 
 \subsubsection{Batch Normalization}
+TODO, what is Batch Normalization
 
 \subsubsection{Max Pooling}
+TODO, what is max pooling
 
 
 
 
+\subsection{Preprocessing}
+
+Preprocessing for this network has three primary stages: segmentation, rescaling, and depth colorization. First, we segment the color and depth images using a mask provided with the dataset, setting pixel values to black in the color image and zero in the depth image. Our dataset provides segmentation masks for every object capture in the dataset, although Eitel et al [todo ref] showed in their paper that doing classification without the segmentation mask was also possible.
+
+The image pairs are then cropped and rescaled to $227 \times 227$, the size of the input for the single-stream networks. We do this by scaling the image by a factor:
+
+\[ f = \frac{\max(\text{object width}, \text{object height})}{227}. \]
+
+The smaller dimension is then zero-padded to fit the square $227 \times 227$. More interesting, however, is the process of depth colorization. Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. AlexNet (and other pretrained image recognition networks) require a three-channel input.
+
+TODO: why do we do jet colorization, etc 
+
+
+
+
+
+
+
+\subsection{Training}
+
+
+
+
+%------------- Figures for this section -------------%
 
 \begin{figure}
 \begin{mdframed}
@@ -116,11 +146,39 @@ Finally, we strip the \texttt{fc8} classification layers from the our AlexNet st
 \label{fig:network}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1.png}
 
-\subsection{Preprocessing}
+    \vspace{0.4cm}
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_depth.png}
+    \caption{Original color and depth photos of object captured on a turntable.}
+    \label{fig:orig_img}
+\end{figure}
 
-\subsection{Training}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_mask.png}
+    \caption{Ground-truth segmentation mask for banana object.}
+    \label{fig:img_mask}
+\end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_crop.png}
 
+    \vspace{0.4cm}
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_depth_crop.png}
+    \caption{Cropped banana photo using given segmentation mask.}
+    \label{fig:img_cropped}
+\end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_resize.png}
 
+    \vspace{0.4cm}
+    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_depth_resize.png} 
+    \caption{Rescaled cropped color photo (top) and rescaled cropped depth photo (bottom) colorized using \textit{Jet} heatmap.}
+    \label{fig:depth_colorized}
+\end{figure}
