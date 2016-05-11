@@ -1,43 +1,17 @@
 %!TEX root = ../final_report.tex
 
-\textit{Include any formulas, pseudocode, diagrams -- anything that is
-necessary to clearly explain your system and what you have done. If possible,
-illustrate the intermediate stages of your approach with result images.}
+\textit{Include any formulas, pseudocode, diagrams -- anything that is necessary to clearly explain your system and what you have done. If possible, illustrate the intermediate stages of your approach with result images.}
 
-For our approach, we implemented a variation on the CVPR 2015 paper from Eitel
-et al titled \textit{Multimodal Deep Learning for Robust RGB-D Object
-Recognition} \cite{Eitel2015}. The main contribution of this paper was to show how
-pretrained networks such as AlexNet or VGGNet can be used to process single-
-channel depth information, enabling networks to run on depth information
-despite a lack of large-scale depth datasets such as ImageNet for color images
-\cite{ImageNet2015}. In this section, we will discuss our network architecture, our
-preprocessing phase, and our training methodology.
+For our approach, we implemented a variation on the CVPR 2015 paper from Eitel et al titled \textit{Multimodal Deep Learning for Robust RGB-D Object Recognition} \cite{Eitel2015}. The main contribution of this paper was to show how pretrained networks such as AlexNet or VGGNet can be used to process single-channel depth information, enabling networks to run on depth information despite a lack of large-scale depth datasets such as ImageNet for color images \cite{ImageNet2015}. In this section, we will discuss our network architecture, our preprocessing phase, and our training methodology.
 
+\subsection{Washington RGB-D Object Dataset}
 
 \subsection{Network Architecture}
+The network structure proposed by Eitel et al \cite{Eitel2015} is pictured in Figure \ref{fig:network}. Its structure can be broken into three parts: a network for color-based classification, a network for depth-based classification, and a final fusion network combining the two single-modality streams into a final classification result. Fusing two single-stream networks is beneficial for two main reasons. Firstly, unlike large companies like Microsoft and Google who have recently become involved in deep learning competitions, we do not have a GPU farm at our disposal to train networks ad-infinitum. Additionally, the first consumer depth camera was only released within the last 5 years \cite{Alex2009_kinect}. Unlike ImageNet, we do not have millions of labeled depth captures to use for network training. A smaller dataset could be used to train a depth network from scratch, but using such a comparatively small dataset would likely result in network overfitting and poor results on test data.
 
-The network structure proposed by Eitel et al \cite{Eitel2015} is pictured in Figure
-\ref{fig:network}. Its structure can be broken into three parts: a network for
-color-based classification, a network for depth-based classification, and a
-final fusion network combining the two single-modality streams into a final
-classification result. Fusing two single-stream networks is beneficial for two
-main reasons. Firstly, unlike large companies like Microsoft and Google who
-have recently become involved in deep learning competitions, we do not have a
-GPU farm at our disposal to train networks ad-infinitum. Additionally, the
-first consumer depth camera was only released within the last 5 years \cite{Alex2009_kinect}. Unlike ImageNet, we do not have millions of labeled depth captures to
-use for network training. A smaller dataset could be used to train a depth
-network from scratch, but using such a comparatively small dataset would
-likely result in network overfitting and poor results on test data.
+To this end, we use the pretrained network AlexNet for our single stream network. AlexNet is a top-tier network without as many layers as a deep residual learning network, making it a better choice for our limited compute capacity and timeframe. Our implementation of AlexNet is shown in further detail in Figure \ref{fig:single_stream_layout}. 
 
-To this end, we use the pretrained network AlexNet for our single stream
-network. AlexNet is a top-tier network without as many layers as a deep
-residual learning network, making it a better choice for our limited compute
-capacity and timeframe. Our implementation of AlexNet is shown in further
-detail in Figure \ref{fig:single_stream_layout}. 
-
-Finally, we strip the \texttt{fc8} classification layers from the our AlexNet
-streams and concatenate the two models, feeding the now 8092-node layer into
-\texttt{fc1-fus}, a 4096-node fully-connected layer. This then goes into a final classification layer with softmax activation. The individual elements of the network are described below.
+Finally, we strip the \texttt{fc8} classification layers from the our AlexNet streams and concatenate the two models, feeding the now 8092-node layer into \texttt{fc1-fus}, a 4096-node fully-connected layer. This then goes into a final classification layer with softmax activation. The individual elements of the network are described below.
 
 \subsubsection{Convolutional Layer}
 TODO, what is a convolutional layer
@@ -60,11 +34,11 @@ Preprocessing for this network has three primary stages: segmentation, rescaling
 
 The image pairs are then cropped and rescaled to $227 \times 227$, the size of the input for the single-stream networks. We do this by scaling the image by a factor:
 
-\[ f = \frac{\max(W, H)}{227}. \]
+\[ \kappa = \frac{\max(W, H)}{227}. \]
 
-where $W$ and $H$ are object's width and height, respectively. The smaller dimension is then zero-padded to fit the square $227 \times 227$. More interesting, however, is the process of depth colorization. Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. AlexNet (and other pretrained image recognition networks) require a three-channel input.
+where $W$ and $H$ are object's width and height, respectively. The smaller dimension is then zero-padded to fit the square $227 \times 227$. By this way the object is kept as the image's center, making it efficient in case the boundary is cropped during training. 
 
-TODO: why do we do jet colorization, etc 
+More interesting, however, is the process of depth colorization. Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. By converting depth images into three-channel data, we can treat them as images and feed into AlexNet (or other pretrained image recognition networks). Although there are different ways to colorize depth maps, jet colorization is proven superior in term of boosting system's performance \cite{Eitel2015}.
 
 
 
@@ -73,9 +47,37 @@ TODO: why do we do jet colorization, etc
 
 
 \subsection{Training}
+The training process in divided into two different phases: (1) training the stream networks and (2) training the fusion network. Suppose that we have the dataset
+\[ \mathcal{D} = \left\{ \left(\mathbf{x}^1, \mathbf{d}^1, \mathbf{y}^1\right), ..., \left(\mathbf{x}^N, \mathbf{d}^N, \mathbf{y}^N\right) \right\} \]
+where $\mathbf{x}^i$ is a RGB image, $\mathbf{d}^i$ is a depth image, and $\mathbf{y}^i$ is a label in the form of
+\[
+\mathbf{y}^i = (y_1^i, y_2^i, ..., y_k^i, ..., y_{M}^i)^\top \qquad \text{s.t.} \qquad y_k^i = 
+\begin{cases}
+1, & \mathbf{x}^i \text{ and } \mathbf{d}^i \text{ belong to class } k\\
+0, & \text{otherwise}
+\end{cases}
+\]
+where $M$ is the number of classes. The data are fed into the first training phase and then the second one.
 
+\subsubsection{Training the stream networks}
+Let $g^I(\mathbf{x}^i; \theta^I)$ be the representation for the color image $\mathbf{x}^i$ of the last fully connected layer from stream networks (\textit{fc7}) of AlexNet, where $\theta^I$ is the parameter. Similarly, we have $g^D(\mathbf{d}^i; \theta^D)$ for the depth image $\mathbf{d}^i$. Since we initialize the stream networks with pretrained weights, $\theta^I$ and $\theta^D$ are known. The weights $\mathbf{W}^I$ and $\mathbf{W}^D$ for RGB and depth streams are trained by solving
+\begin{align*}
+	\min_{\mathbf{W}^I,\theta^I} &= \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^I g^I \left(\mathbf{x}^i; \theta^I\right), \mathbf{y}^i\right)\right), \\
+	\min_{\mathbf{W}^D,\theta^D} &= \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^D g^D \left(\mathbf{d}^i; \theta^D\right), \mathbf{y}^i\right)\right),
+\end{align*}
+where softmax function is
+\[ \text{softmax}(z) =\frac{e^z}{\lVert z \rVert_1} \]
+and the loss is
+\[ \mathcal{L}(x,y) = -\sum_k y_k \log s_k \].
+This loss function is actually the ``categorical crossentropy'' function, which is commonly used in neural networks.
 
+\subsubsection{Training the fusion network}
+After acquiring $\mathbf{W}^I$ and $\mathbf{W}^D$, we discard the softmax layers (\textit{fc8}) and concatenate the last responses of the two streams: $g^I(\mathbf{x}^i; \theta^I)$ and $g^D(\mathbf{d}^i; \theta^D)$ and feed them through the additional fusion layer (\textit{fc1\_fus})
+\[ \mathcal{F} = f\left(\left[g^I(\mathbf{x}^i; \theta^I); g^D(\mathbf{d}^i; \theta^D)\right]; \theta^F\right) \]
+where $\theta^F$ is the parameters of this layer. We can train this layer with a similar manner as in the previous training phase:
+\[ \min_{\mathbf{W}^F,\theta^I, \theta^D, \theta^F} = \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^F \mathcal{F}, \mathbf{y}^i\right)\right) \]
 
+Note that in this phase, the weights trained from the previous one are kept unchanged. Only the weights of the fusion network are optimized.
 
 %------------- Figures for this section -------------%
 
@@ -140,17 +142,22 @@ TODO: why do we do jet colorization, etc
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{img/architecture.png} 
-\caption{Network architecture using separate color and depth inputs. Inputs for color and depth are $227 \times 227 \times 3$, assuming depth colorization during preprocessing stage. Each modality has its own individual network, with the two resultant fusion layers providing final classification.}
-\label{fig:network}
+	\centering
+	\includegraphics[width=0.85\linewidth]{img/architecture.png} 
+	\caption{Network architecture using separate color and depth inputs. Inputs for color and depth are $227 \times 227 \times 3$, assuming depth colorization during preprocessing stage. Each modality has its own individual network, with the two resultant fusion layers providing final classification.}
+	\label{fig:network}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1.png}
-
-    \vspace{0.4cm}
-    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_depth.png}
+    \begin{subfigure}[b]{0.45\linewidth}
+    	\includegraphics[width=\textwidth]{img/banana_1_1_1.png}
+    	\caption{Color image}
+    \end{subfigure}   	
+    \begin{subfigure}[b]{0.45\linewidth}
+    	\includegraphics[width=\textwidth]{img/banana_1_1_1_depth.png}
+    	\caption{Depth image}
+    \end{subfigure}
     \caption{Original color and depth photos of object captured on a turntable.}
     \label{fig:orig_img}
 \end{figure}
@@ -164,20 +171,29 @@ TODO: why do we do jet colorization, etc
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_crop.png}
-
-    \vspace{0.4cm}
-    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_depth_crop.png}
+    \begin{subfigure}[b]{0.45\linewidth}
+    	\includegraphics[width=\textwidth]{img/banana_1_1_1_crop.png}
+    	\caption{Color image}
+    \end{subfigure}   	
+    \begin{subfigure}[b]{0.45\linewidth}
+    	\includegraphics[width=\textwidth]{img/banana_1_1_1_depth_crop.png}
+    	\caption{Depth image}
+    \end{subfigure}
     \caption{Cropped banana photo using given segmentation mask.}
     \label{fig:img_cropped}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_resize.png}
+   	\begin{subfigure}[b]{0.45\linewidth}
+   		\includegraphics[width=\textwidth]{img/banana_1_1_1_resize.png}
+   		\caption{Color image}
+   	\end{subfigure}   	
+   	\begin{subfigure}[b]{0.45\linewidth}
+   		\includegraphics[width=\textwidth]{img/banana_1_1_1_depth_resize.png}
+   		\caption{Depth image}
+   	\end{subfigure}
 
-    \vspace{0.4cm}
-    \includegraphics[width=0.7\linewidth]{img/banana_1_1_1_depth_resize.png} 
-    \caption{Rescaled cropped color photo (top) and rescaled cropped depth photo (bottom) colorized using \textit{Jet} heatmap.}
+    \caption{Rescaled cropped color photo and rescaled cropped depth photo colorized using \textit{Jet} heatmap.}
     \label{fig:depth_colorized}
 \end{figure}
