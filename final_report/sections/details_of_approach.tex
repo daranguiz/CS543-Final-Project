@@ -6,17 +6,17 @@ illustrate the intermediate stages of your approach with result images.}
 
 For our approach, we implemented a variation on the CVPR 2015 paper from Eitel
 et al titled \textit{Multimodal Deep Learning for Robust RGB-D Object
-Recognition} [todo ref]. The main contribution of this paper was to show how
+Recognition} \cite{Eitel2015}. The main contribution of this paper was to show how
 pretrained networks such as AlexNet or VGGNet can be used to process single-
 channel depth information, enabling networks to run on depth information
 despite a lack of large-scale depth datasets such as ImageNet for color images
-[todo ref]. In this section, we will discuss our network architecture, our
+\cite{ImageNet2015}. In this section, we will discuss our network architecture, our
 preprocessing phase, and our training methodology.
 
 
 \subsection{Network Architecture}
 
-The network structure proposed by Eitel et al [todo ref] is pictured in Figure
+The network structure proposed by Eitel et al \cite{Eitel2015} is pictured in Figure
 \ref{fig:network}. Its structure can be broken into three parts: a network for
 color-based classification, a network for depth-based classification, and a
 final fusion network combining the two single-modality streams into a final
@@ -24,8 +24,7 @@ classification result. Fusing two single-stream networks is beneficial for two
 main reasons. Firstly, unlike large companies like Microsoft and Google who
 have recently become involved in deep learning competitions, we do not have a
 GPU farm at our disposal to train networks ad-infinitum. Additionally, the
-first consumer depth camera was only released within the last 5 years [todo
-ref]. Unlike ImageNet, we do not have millions of labeled depth captures to
+first consumer depth camera was only released within the last 5 years \cite{Alex2009_kinect}. Unlike ImageNet, we do not have millions of labeled depth captures to
 use for network training. A smaller dataset could be used to train a depth
 network from scratch, but using such a comparatively small dataset would
 likely result in network overfitting and poor results on test data.
@@ -57,13 +56,13 @@ TODO, what is max pooling
 
 \subsection{Preprocessing}
 
-Preprocessing for this network has three primary stages: segmentation, rescaling, and depth colorization. First, we segment the color and depth images using a mask provided with the dataset, setting pixel values to black in the color image and zero in the depth image. Our dataset provides segmentation masks for every object capture in the dataset, although Eitel et al [todo ref] showed in their paper that doing classification without the segmentation mask was also possible.
+Preprocessing for this network has three primary stages: segmentation, rescaling, and depth colorization. First, we segment the color and depth images using a mask provided with the dataset, setting pixel values to black in the color image and zero in the depth image. Our dataset provides segmentation masks for every object capture in the dataset, although Eitel et al \cite{Eitel2015} showed in their paper that doing classification without the segmentation mask was also possible.
 
 The image pairs are then cropped and rescaled to $227 \times 227$, the size of the input for the single-stream networks. We do this by scaling the image by a factor:
 
-\[ f = \frac{\max(\text{object width}, \text{object height})}{227}. \]
+\[ f = \frac{\max(W, H)}{227}. \]
 
-The smaller dimension is then zero-padded to fit the square $227 \times 227$. More interesting, however, is the process of depth colorization. Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. AlexNet (and other pretrained image recognition networks) require a three-channel input.
+where $W$ and $H$ are object's width and height, respectively. The smaller dimension is then zero-padded to fit the square $227 \times 227$. More interesting, however, is the process of depth colorization. Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. AlexNet (and other pretrained image recognition networks) require a three-channel input.
 
 TODO: why do we do jet colorization, etc 
 
