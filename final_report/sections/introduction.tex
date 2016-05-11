@@ -3,12 +3,36 @@
 \textit{Define and motivate the problem, discuss background material or related work, and briefly summarize your approach.}
 
 Photography has remained generally unchanged since the first photograph was
-taken in 1816 \cite{Beaumont1982_photography}. The proceeding years since have seen a plethora of
-technical advances bettering image quality, speed of image capture, as well as
-other aspects, but imaging has remained a two-dimensional art. Developments in
-recent years, however, have begun to fundamentally alter how we consider
-imaging, with the release of the first Xbox Kinect in November 2010 \cite{Alex2009_kinect}.
-With this launch, consumers and researchers alike were able to view the world in
-three dimensions, opening up a second modality to image processing.
+taken in 1816 \cite{Beaumont1982_photography}. The proceeding years since have
+seen a plethora of technical advances bettering image quality and capture rate,
+but imaging has remained a two-dimensional art. Developments in recent years,
+however, have begun to fundamentally alter how we consider imaging, with the
+release of the first Xbox Kinect in November 2010 \cite{Alex2009_kinect}. With
+this launch, consumers and researchers alike were able to view the world in
+three dimensions, opening up a second modality to image processing. Our
+particular interest in this area is to explore how object recognition pipelines
+can be changed to accommodate this new depth information.
 
+Before the advent of deep learning, object classification was done using a
+process called \textit{bag of features}. At a high level, features are extracted
+from an image and clustered in some manner such that every feature in a
+particular image belongs to a cluster. This is called a ``visual vocabulary''.
+Finally, objects are quantized by forming a histogram of visual codeword
+frequency; as an example, a bicycle may have a high frequency of codewords
+corresponding to spokes on the wheels, but it may have a low frequency of
+codewords corresponding to the hubcaps of a car. New objects can then be
+classified using a nearest-neighbor approach, where neighbors are high-
+dimensional cluster centroids of known objects, or using other standard
+classification techniques. This was done most notably by Lazebnik et al in 2006,
+achieving a maximum classification rate of $64.6\%$ on the Caltech101 image
+dataset [todo ref].
 
+Deep learning has since supplanted bag of features as the state-of-the-art in
+image classification, with the largest paradigm shift being seen in 2012 with
+the publication of AlexNet, a network trained for the ImageNet classification
+challenge [todo ref]. There have been numerous network architectures since
+AlexNet, such as VGG Net [todo ref], GoogLeNet [todo ref], and ResNet, a deep
+residual network with 152 layers and only $3.57\%$ error on the ImageNet test
+set [todo ref].
+
+Our approach combines the contributions of AlexNet with new depth sensing by converting depth information into an RGB image and separately classifying objects with both their original RGB information as well as their depth information. This classification is then fused and recomputed to produce a combined classification incorporating both depth and color. 
