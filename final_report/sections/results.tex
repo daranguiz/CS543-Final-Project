@@ -22,16 +22,16 @@ as seen in Equation \ref{equ:label}. Since we are using pretrained weights from 
 \subsubsection{Model Architecture}
 This module creates the architecture for the stream and fusion networks. Common Keras-based systems are implemented based on Sequential model, which allows adding layers in a sequential manner. Such scheme of architecture is actually found in popular network, such as AlexNet \cite{Krizhevsky2012_alexnet}, VGG \cite{Simonyan2014_vgg}. However, such architecture faces the problem of constructing fusion layer. Although Keras provides layer called Merge layer to concatenate different sources of input, it does not work well with Sequential model, making it impossible to load networks after training. To overcome this problem, we use Graph models instead, which offers more flexibility but still retains core functionalities as in Sequential models.
 
-The module has two main parts.
+The module has two main parts: the first one replicates the network architecture of AlexNet and the second one constructs the fusion network from stream models. 
 
 \subsubsection{Model Training}
 
 \subsubsection{Model Testing}
 
-
-\subsection{Experiment Setup}
-
 \subsection{Experimental Results}
+
+Experiment Setup (train - eval - test)
+
 \begin{figure}[htbp]
 	\centering
 	\begin{subfigure}[b]{0.45\linewidth}
@@ -57,12 +57,27 @@ The module has two main parts.
 
 \begin{table}[htbp]
 	\centering
-	\caption{Recognition accuracy on reduced and full dataset for RGB stream, depth stream, and fusion network}
+	\caption{Recognition accuracy on reduced (5 categories) and full dataset (51 categories) for RGB stream, depth stream, and fusion network}
 	\label{tab:result}
 	\begin{tabular}{|c|c|c|c|}
 		\hline
 		& RGB stream & Depth stream & RGB-D fusion network \\ \hline
-		Reduced dataset (5 categories) & 68.26\% & 74.43\% & 56.52\% \\ 
-		Full dataset (51 categories) & 68.93\% & 79.19\% & TODO \\ \hline
-	\end{tabular} 
+		Reduced dataset & 68.26\% & 74.43\% & 56.52\% \\ 
+		Full dataset & 68.93\% & 79.19\% & 8.07\% \\ 
+		Full dataset with refactored fusion layers & 68.93\% & 79.19\% & 17.34\% \\ \hline
+	\end{tabular}
 \end{table}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\textwidth]{img/prediction.png}
+	\caption{Prediction results with unfactored fusion layer.}
+	\label{fig:prediction}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\textwidth]{img/prediction_refactored.png}
+	\caption{Prediction results with refactored fusion layer.}
+	\label{fig:prediction_refactored}
+\end{figure}
