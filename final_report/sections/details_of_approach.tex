@@ -5,6 +5,7 @@
 For our approach, we implemented a variation on the CVPR 2015 paper from Eitel et al titled \textit{Multimodal Deep Learning for Robust RGB-D Object Recognition} \cite{Eitel2015}. The main contribution of this paper was to show how pretrained networks such as AlexNet or VGGNet can be used to process single-channel depth information, enabling networks to run on depth information despite a lack of large-scale depth datasets such as ImageNet for color images \cite{ImageNet2015}. In this section, we will discuss our network architecture, our preprocessing phase, and our training methodology.
 
 \subsection{Dataset}
+\label{subsec:dataset}
 In this project, we use Washington RGB-D object dataset \cite{Lai2011_rgbddata} . This dataset includes 300 common household object, divided into 51 categories (Figure \ref{fig:rgbd_dataset}). Using a Kinect style 3D camera, data are recorded, synchronized, and aligned at the framerate of 30Hz and resolution of 640 x 480. Each object is recorded while being placed on a turntable under three different camera viewpoints: low, middle, and high. 
 
 \begin{figure}[htbp]
@@ -145,7 +146,7 @@ TODO, what is max pooling
 
 
 \subsection{Preprocessing}
-
+\label{subsec:preprocessing}
 Preprocessing for this network has three primary stages: segmentation, rescaling, and depth colorization. First, we segment the color and depth images using a mask provided with the dataset, setting pixel values to black in the color image and zero in the depth image (Figure \ref{fig:img_cropped}). Our dataset provides segmentation masks for every object capture in the dataset, although Eitel et al \cite{Eitel2015} showed in their paper that doing classification without the segmentation mask was also possible.
 
 \begin{figure}[htbp]
@@ -164,7 +165,10 @@ Preprocessing for this network has three primary stages: segmentation, rescaling
 
 The image pairs are then cropped and rescaled to $227 \times 227$, the size of the input for the single-stream networks. We do this by scaling the image by a factor:
 
-\[ \kappa = \frac{\max(W, H)}{227}. \]
+\begin{equation}
+	\label{equ:rescale}
+	\kappa = \frac{\max(W, H)}{227}.
+\end{equation}
 
 where $W$ and $H$ are object's width and height, respectively. The smaller dimension is then zero-padded to fit the square $227 \times 227$. By this way the object is kept as the image's center, making it efficient in case the boundary is cropped during training (Figure \ref{fig:depth_colorized}a). More interesting, however, is the process of depth colorization ((Figure \ref{fig:depth_colorized}b)). Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. By converting depth images into three-channel data, we can treat them as images and feed into AlexNet (or other pretrained image recognition networks). Although there are different ways to colorize depth maps, jet colorization is proven superior in term of boosting system's performance \cite{Eitel2015}.
 
@@ -189,34 +193,45 @@ where $W$ and $H$ are object's width and height, respectively. The smaller dimen
 
 \subsection{Network Training}
 The training process in divided into two different phases: (1) training the stream networks and (2) training the fusion network. Suppose that we have the dataset
-\[ \mathcal{D} = \left\{ \left(\mathbf{x}^1, \mathbf{d}^1, \mathbf{y}^1\right), ..., \left(\mathbf{x}^N, \mathbf{d}^N, \mathbf{y}^N\right) \right\} \]
+\begin{equation}
+	\mathcal{D} = \left\{ \left(\mathbf{x}^1, \mathbf{d}^1, \mathbf{y}^1\right), ..., \left(\mathbf{x}^N, \mathbf{d}^N, \mathbf{y}^N\right) \right\}
+\end{equation}
 where $\mathbf{x}^i$ is a RGB image, $\mathbf{d}^i$ is a depth image, and $\mathbf{y}^i$ is a label in the form of
-\[
-\mathbf{y}^i = (y_1^i, y_2^i, ..., y_k^i, ..., y_{M}^i)^\top \qquad \text{s.t.} \qquad y_k^i = 
-\begin{cases}
-1, & \mathbf{x}^i \text{ and } \mathbf{d}^i \text{ belong to class } k\\
-0, & \text{otherwise}
-\end{cases}
-\]
+\begin{equation}
+	\label{equ:label}
+	\mathbf{y}^i = (y_1^i, y_2^i, ..., y_k^i, ..., y_{M}^i)^\top \qquad \text{s.t.} \qquad y_k^i = 
+	\begin{cases}
+	1, & \mathbf{x}^i \text{ and } \mathbf{d}^i \text{ belong to class } k\\
+	0, & \text{otherwise}
+	\end{cases}
+\end{equation}
 where $M$ is the number of classes. The data are fed into the first training phase and then the second one.
 
 \subsubsection{Training the stream networks}
 Let $g^I(\mathbf{x}^i; \theta^I)$ be the representation for the color image $\mathbf{x}^i$ of the last fully connected layer from stream networks (\textit{fc7}) of AlexNet, where $\theta^I$ is the parameter. Similarly, we have $g^D(\mathbf{d}^i; \theta^D)$ for the depth image $\mathbf{d}^i$. Since we initialize the stream networks with pretrained weights, $\theta^I$ and $\theta^D$ are known. The weights $\mathbf{W}^I$ and $\mathbf{W}^D$ for RGB and depth streams are trained by solving
-\begin{align*}
+\begin{align}
 	\min_{\mathbf{W}^I,\theta^I} &= \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^I g^I \left(\mathbf{x}^i; \theta^I\right), \mathbf{y}^i\right)\right), \\
 	\min_{\mathbf{W}^D,\theta^D} &= \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^D g^D \left(\mathbf{d}^i; \theta^D\right), \mathbf{y}^i\right)\right),
-\end{align*}
+\end{align}
 where softmax function is
-\[ \text{softmax}(z) =\frac{e^z}{\lVert z \rVert_1} \]
+\begin{equation}
+	\text{softmax}(z) =\frac{e^z}{\lVert z \rVert_1}
+\end{equation}
 and the loss is
-\[ \mathcal{L}(x,y) = -\sum_k y_k \log s_k \].
+\begin{equation}
+	\mathcal{L}(x,y) = -\sum_k y_k \log s_k.
+\end{equation}
 This loss function is actually the ``categorical crossentropy'' function, which is commonly used in neural networks.
 
 \subsubsection{Training the fusion network}
 After acquiring $\mathbf{W}^I$ and $\mathbf{W}^D$, we discard the softmax layers (\textit{fc8}) and concatenate the last responses of the two streams: $g^I(\mathbf{x}^i; \theta^I)$ and $g^D(\mathbf{d}^i; \theta^D)$ and feed them through the additional fusion layer (\textit{fc1\_fus})
-\[ \mathcal{F} = f\left(\left[g^I(\mathbf{x}^i; \theta^I); g^D(\mathbf{d}^i; \theta^D)\right]; \theta^F\right) \]
+\begin{equation}
+	\mathcal{F} = f\left(\left[g^I(\mathbf{x}^i; \theta^I); g^D(\mathbf{d}^i; \theta^D)\right]; \theta^F\right)
+\end{equation}
 where $\theta^F$ is the parameters of this layer. We can train this layer with a similar manner as in the previous training phase:
-\[ \min_{\mathbf{W}^F,\theta^I, \theta^D, \theta^F} = \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^F \mathcal{F}, \mathbf{y}^i\right)\right) \]
+\begin{equation}
+	\min_{\mathbf{W}^F,\theta^I, \theta^D, \theta^F} = \sum_{i=1}^N \mathcal{L} \left( \text{softmax}\left(\mathbf{W}^F \mathcal{F}, \mathbf{y}^i\right)\right)
+\end{equation}
 
 Note that in this phase, the weights trained from the previous one are kept unchanged. Only the weights of the fusion network are optimized.
 
