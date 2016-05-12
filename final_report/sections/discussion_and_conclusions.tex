@@ -4,14 +4,14 @@
 
 Our experimental results are not as accurate as they should be, but our single-stream depth network results are heartening. In particular, if we get $79.19\%$ accuracy from depth alone, our network should be able to at least show $79.19\%$ accuracy after the fusion layers. We were concerned that colorizing the depth map may add artificial information that would affect the results of the single-stream network, but there were no problems with the depth stream.
 
-There is a suspicion that Keras is the current cause of our poor classification results. As mentioned earlier, a small refactoring which should not change the functionality of the architecture doubled our fusion classification rate. Our next steps, albeit after the course ends, will be to move our network to a different backend such as TensorFlow to see if that fixes any issues. We have considered other factors as well, namely:
+There is a suspicion that Keras is the current cause of our poor classification results. As mentioned earlier, a small refactoring which should not change the functionality of the architecture doubled our fusion classification rate. Our next steps, albeit after the course ends, will be to move our network to a different backend such as TensorFlow to see if that fixes any issues. We considered other factors that could be causing problems, but ultimately ruled them out:b
 
 \begin{itemize}
     \item \textbf{Implementation error}: It is tricky to show that we are not doing anything incorrect implementation-wise, but our single-stream network results validate the initial network setup and training phase. The second phase of training, freezing single-stream network weights, concatenating their outputs, and training the final fusion layers, are only a few lines of code. Unless we have missed something drastic, it is hard for something to go wrong in only a few lines.
 
-    \item \textbf{Vanishing gradient}: A problem we had earlier during the semester was the issue of a vanishing gradient in the early layers. Adding batch normalization fixed the vanishing gradient and allowed us to train the full network.
+    \item \textbf{Vanishing gradient}: A problem we had earlier during the semester was the issue of a vanishing gradient in the early layers. Adding batch normalization fixed the vanishing gradient and allowed us to train the full network, and we also added batch normalization in the fusion layers to be safe. 
 
-    \item \textbf{Incorrect data coming from single-stream networks}: There may be a problem with the network concatenation such that the individual networks are not outputting correct data, but that issue was sorted when we switched from a Keras Sequential model to a Graph model.
+    \item \textbf{Incorrect data coming from single-stream networks}: We grappled with concatenating the single-stream networks properly such that the fusion layer received the correct inputs, but that has since been fixed and validated.
 
 \end{itemize}
 
