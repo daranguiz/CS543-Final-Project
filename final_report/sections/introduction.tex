@@ -1,7 +1,5 @@
 %!TEX root = ../final_report.tex
 
-\textit{Define and motivate the problem, discuss background material or related work, and briefly summarize your approach.}
-
 Photography has remained generally unchanged since the first photograph was
 taken in 1816 \cite{Beaumont1982_photography}. The proceeding years since have
 seen a plethora of technical advances bettering image quality and capture rate,
@@ -25,14 +23,14 @@ classified using a nearest-neighbor approach, where neighbors are high-
 dimensional cluster centroids of known objects, or using other standard
 classification techniques. This was done most notably by Lazebnik et al in 2006,
 achieving a maximum classification rate of $64.6\%$ on the Caltech101 image
-dataset [todo ref].
+dataset \cite{lazebnik_bof}.
 
 Deep learning has since supplanted bag of features as the state-of-the-art in
 image classification, with the largest paradigm shift being seen in 2012 with
 the publication of AlexNet, a network trained for the ImageNet classification
-challenge [todo ref]. There have been numerous network architectures since
-AlexNet, such as VGG Net [todo ref], GoogLeNet [todo ref], and ResNet, a deep
-residual network with 152 layers and only $3.57\%$ error on the ImageNet test
-set [todo ref].
+challenge \cite{Krizhevsky2012_alexnet}. There have been numerous network
+architectures since AlexNet, such as VGG Net \cite{Simonyan2014_vgg}, GoogLeNet
+\cite{googlenet}, and ResNet, a deep residual network with 152 layers and only
+$3.57\%$ error on the ImageNet test set \cite{resnet}.
 
 Our approach combines the contributions of AlexNet with new depth sensing by converting depth information into an RGB image and separately classifying objects with both their original RGB information as well as their depth information. This classification is then fused and recomputed to produce a combined classification incorporating both depth and color. 

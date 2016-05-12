@@ -1,7 +1,5 @@
 %!TEX root = ../final_report.tex
 
-\textit{Summarize the main insights drawn from your analysis and experiments. You can get a good project grade with mostly negative results, as long as you show evidence of extensive exploration, thoughtfully analyze the causes of your negative results, and discuss potential solutions.}
-
 Our experimental results are not as accurate as they should be, but our single-stream depth network results are heartening. In particular, if we get $79.19\%$ accuracy from depth alone, our network should be able to at least show $79.19\%$ accuracy after the fusion layers. We were concerned that colorizing the depth map may add artificial information that would affect the results of the single-stream network, but there were no problems with the depth stream.
 
 There is a suspicion that Keras is the current cause of our poor classification results. As mentioned earlier, a small refactoring which should not change the functionality of the architecture doubled our fusion classification rate. Our next steps, albeit after the course ends, will be to move our network to a different backend such as TensorFlow to see if that fixes any issues. We considered other factors that could be causing problems, but ultimately ruled them out:b
