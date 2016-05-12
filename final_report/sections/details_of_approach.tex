@@ -8,7 +8,7 @@ For our approach, we implemented a variation on the CVPR 2015 paper from Eitel e
 \label{subsec:dataset}
 In this project, we use Washington RGB-D object dataset \cite{Lai2011_rgbddata} . This dataset includes 300 common household object, divided into 51 categories (Figure \ref{fig:rgbd_dataset}). Using a Kinect style 3D camera, data are recorded, synchronized, and aligned at the framerate of 30Hz and resolution of 640 x 480. Each object is recorded while being placed on a turntable under three different camera viewpoints: low, middle, and high. 
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\includegraphics[width=0.85\linewidth]{img/rgbd_dataset2.png}
 	\caption{Some samples from RGB-D Object Dataset.}
@@ -35,7 +35,7 @@ means that the sample is the fifth frame of the second video sequence (out of th
 
 For each sample, there are four different kinds of data: color image (Figure \ref{fig:orig_img}a), depth image (Figure \ref{fig:orig_img}b), segmentation mask (Figure \ref{fig:img_mask}), and a text file indicating the top-left corner of the object of interest.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\begin{subfigure}[b]{0.45\linewidth}
 		\includegraphics[width=\textwidth]{img/banana_1_1_1.png}
@@ -49,7 +49,7 @@ For each sample, there are four different kinds of data: color image (Figure \re
 	\label{fig:orig_img}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\includegraphics[width=0.5\linewidth]{img/banana_1_1_1_mask.png}
 	\caption{Ground-truth segmentation mask for banana object.}
@@ -59,7 +59,7 @@ For each sample, there are four different kinds of data: color image (Figure \re
 \subsection{Network Architecture}
 The network structure proposed by Eitel et al \cite{Eitel2015} is pictured in Figure \ref{fig:network}. Its structure can be broken into three parts: a network for color-based classification, a network for depth-based classification, and a final fusion network combining the two single-modality streams into a final classification result. Fusing two single-stream networks is beneficial for two main reasons. Firstly, unlike large companies like Microsoft and Google who have recently become involved in deep learning competitions, we do not have a GPU farm at our disposal to train networks ad-infinitum. Additionally, the first consumer depth camera was only released within the last 5 years \cite{Alex2009_kinect}. Unlike ImageNet, we do not have millions of labeled depth captures to use for network training. A smaller dataset could be used to train a depth network from scratch, but using such a comparatively small dataset would likely result in network overfitting and poor results on test data.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\includegraphics[width=0.85\linewidth]{img/architecture.png} 
 	\caption{Network architecture using separate color and depth inputs. Inputs for color and depth are $227 \times 227 \times 3$, assuming depth colorization during preprocessing stage. Each modality has its own individual network, with the two resultant fusion layers providing final classification.}
@@ -68,9 +68,9 @@ The network structure proposed by Eitel et al \cite{Eitel2015} is pictured in Fi
 
 To this end, we use the pretrained network AlexNet for our single stream network. AlexNet is a top-tier network without as many layers as a deep residual learning network, making it a better choice for our limited compute capacity and timeframe. Our implementation of AlexNet is shown in further detail in Figure \ref{fig:single_stream_layout}. 
 
-Finally, we strip the \texttt{fc8} classification layers from the our AlexNet streams and concatenate the two models, feeding the now 8092-node layer into \texttt{fc1-fus}, a 4096-node fully-connected layer. This then goes into a final classification layer with softmax activation. The individual elements of the network are described below.
+Finally, we strip the \texttt{fc8} classification layers from the our AlexNet streams and concatenate the two models, feeding the now 8092-node layer into \texttt{fc1-fus}, a 4096-node fully-connected layer. This then goes into a final classification layer with softmax activation. The individual elements of the network are described in Figure \ref{fig:single_stream_layout}.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\begin{mdframed}
 		\begin{itemize}
 			\item \texttt{conv-1}:
@@ -130,26 +130,12 @@ Finally, we strip the \texttt{fc8} classification layers from the our AlexNet st
 	\label{fig:single_stream_layout}
 \end{figure}
 
-\subsubsection{Convolutional Layer}
-TODO, what is a convolutional layer
-
-\subsubsection{ReLU}
-TODO, what is ReLU
-
-\subsubsection{Batch Normalization}
-TODO, what is Batch Normalization
-
-\subsubsection{Max Pooling}
-TODO, what is max pooling
-
-
-
 
 \subsection{Preprocessing}
 \label{subsec:preprocessing}
 Preprocessing for this network has three primary stages: segmentation, rescaling, and depth colorization. First, we segment the color and depth images using a mask provided with the dataset, setting pixel values to black in the color image and zero in the depth image (Figure \ref{fig:img_cropped}). Our dataset provides segmentation masks for every object capture in the dataset, although Eitel et al \cite{Eitel2015} showed in their paper that doing classification without the segmentation mask was also possible.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\begin{subfigure}[b]{0.45\linewidth}
 		\includegraphics[width=\textwidth]{img/banana_1_1_1_crop.png}
@@ -172,7 +158,7 @@ The image pairs are then cropped and rescaled to $227 \times 227$, the size of t
 
 where $W$ and $H$ are object's width and height, respectively. The smaller dimension is then zero-padded to fit the square $227 \times 227$. By this way the object is kept as the image's center, making it efficient in case the boundary is cropped during training (Figure \ref{fig:depth_colorized}a). More interesting, however, is the process of depth colorization ((Figure \ref{fig:depth_colorized}b)). Depth sensors like the Xbox Kinect only give a single-channel intensity image proportional to the distance from the sensor. By converting depth images into three-channel data, we can treat them as images and feed into AlexNet (or other pretrained image recognition networks). Although there are different ways to colorize depth maps, jet colorization is proven superior in term of boosting system's performance \cite{Eitel2015}.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\begin{subfigure}[b]{0.45\linewidth}
 		\includegraphics[width=\textwidth]{img/banana_1_1_1_resize.png}
@@ -234,9 +220,6 @@ where $\theta^F$ is the parameters of this layer. We can train this layer with a
 \end{equation}
 
 Note that in this phase, the weights trained from the previous one are kept unchanged. Only the weights of the fusion network are optimized.
-
-%------------- Figures for this section -------------%
-
 
 
 

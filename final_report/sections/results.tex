@@ -54,7 +54,7 @@ To conduct the experiment, we divide RGB-D object data set into three different 
 
 Figure \ref{fig:intermediate_result} displays intermediate outputs at the first and fifth activation layers (using ReLu function), given an apple as input. Figure \ref{fig:intermediate_result}a and \ref{fig:intermediate_result}c are the visualizations of color image while Figure \ref{fig:intermediate_result}b and \ref{fig:intermediate_result}c are those of depth. It is clear that the object's shape is retained on both channels and the features get more complicated at deeper layers. Despite adding artificial information (depth colorizing), things we would expect to see like edge and magnitude detection are still present in the activations.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\begin{subfigure}[b]{0.45\linewidth}
 		\includegraphics[width=\textwidth]{img/relu1_rgb.png}
@@ -79,7 +79,7 @@ Figure \ref{fig:intermediate_result} displays intermediate outputs at the first 
 
 Prediction accuracy of the system is presented in Table \ref{tab:result}. We conduct experiences in three different scenarios: reduced data (with 5 classes), full dataset (with 51 classes), and full dataset with refactored fusion layers. Accuracy on stream models are satisfactory and stable, around 68\% for RGB stream and 79\% for depth stream. Fusion network, however, has poorer accuracy. Although it is 56.52\% on reduced dataset, the accuracy drops to 8.07\% on the full one. 
 
-\begin{table}[htbp]
+\begin{table}
 	\centering
 	\caption{Recognition accuracy on reduced (5 categories) and full dataset (51 categories) for RGB stream, depth stream, and fusion network}
 	\label{tab:result}
@@ -94,14 +94,14 @@ Prediction accuracy of the system is presented in Table \ref{tab:result}. We con
 
 The effect is illustrated with better insight in Figure \ref{fig:prediction}, where prediction is computed on 200 samples randomly selected from testing set. As the figure shows, most of the samples are classified into two classes although the groundtruth labels are well distributed among different categories. However, if we use refactored script for fusion layers, the prediction is better distributed, as showed in Figure \ref{fig:prediction_refactored}. Therefore, we suspect that the problem is caused by some API bug in Keras framework.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{img/prediction.png}
 	\caption{Prediction results (left) and ground truth labels (right) on 200 random samples with unfactored fusion layer.}
 	\label{fig:prediction}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{img/prediction_refactored.png}
 	\caption{Prediction results (left) and ground truth labels (right) on 200 random samples with refactored fusion layer.}
